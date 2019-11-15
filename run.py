@@ -1,32 +1,43 @@
 import os
-from flask import Flask, redirect
+from datetime import datetime
+from flask import Flask, redirect, render_template, request, session
 
 app = Flask(__name__)
+app.secret_key = "luggage9#9#"
 messages = []
+# Hard-coded url to avoid redirecting to localhost. This problem needs investigated in due course.
+app_url = "https://5000-ba52b9a9-48ff-4236-ad65-8b8bf116efb5.ws-eu01.gitpod.io/"
 
 def add_messages(username, message):
     """ Add a chat message. """
-    messages.append("{}: {}".format(username, message))
+    now = datetime.now().strftime("%H:%M:%S")
+    messages_dict = { "timestamp": now, "from": username, "message": message}
 
-def get_all_messages():
-    """ Get all messages and separate them with a break tag. """
-    return "<br>".join(messages)
+    messages.append(messages_dict)
 
-@app.route('/')
+@app.route('/', methods = ["GET", "POST"])
 def index():
     """ Main page with instructions """
-    return "To send a message use /USERNAME/MESSAGE"
+
+    if request.method == "POST":
+        """ Save the entered username in a Session cookie. """
+        session["username"] = request.form["username"]
+
+    if "username" in session:
+        return redirect(app_url + session["username"])
+    
+    return render_template("index.html")
 
 @app.route('/<username>')
 def user(username):
     """ Display chat messages. """
-    return "<h1>Welcome, {0}</h1> {1}".format(username, get_all_messages())
+    return render_template("chat.html", username = username, chat_messages = messages)
 
 @app.route('/<username>/<message>')
 def send_message(username, message):
     """ Create a new message and redirect back to chat page. """
     add_messages(username, message)
-    return redirect('/' + username)
+    return redirect(app_url + username)
 
 app.run(host=os.getenv('IP'),
         port=os.getenv('PORT'),
