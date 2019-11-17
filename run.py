@@ -3,10 +3,11 @@ from datetime import datetime
 from flask import Flask, redirect, render_template, request, session, url_for
 
 app = Flask(__name__)
-app.secret_key = "luggage9#9#"
+app.secret_key = os.getenv("SECRET", "luggage9#9#")
 messages = []
 # Hard-coded url to avoid redirecting to localhost. This problem needs investigated in due course.
-app_url = "https://5000-ba52b9a9-48ff-4236-ad65-8b8bf116efb5.ws-eu01.gitpod.io/"
+#app_url = "https://5000-ba52b9a9-48ff-4236-ad65-8b8bf116efb5.ws-eu01.gitpod.io"
+app_url = ""
 
 def add_message(username, message):
     """ Add a chat message to the message list. """
@@ -36,6 +37,6 @@ def user(username):
 
     return render_template("chat.html", username = username, chat_messages = messages)
 
-app.run(host=os.getenv('IP'),
-        port=os.getenv('PORT'),
-        debug=True)
+app.run(host=os.getenv('IP', '0.0.0.0'),
+        port=os.getenv('PORT', 5000),
+        debug=False)
